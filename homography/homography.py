@@ -12,8 +12,8 @@ pts_src4 = np.array([[704, 314], [635, 292], [515, 257],[615, 192], [607, 248]])
 
 source_points = [pts_src1, pts_src2, pts_src3, pts_src4]
 
-#pts_dst = np.array([[750, 550], [650, 550], [450, 550],[450, 250], [550, 450]])
-pts_dst = np.array([[650, 550], [600, 550], [500, 550],[500, 400], [550, 500]])
+#pts_dst = np.array([[750, 550], [650, 550], [450, 550],[450, 250], [550, 450]]) #these are the zoomed in destination points
+pts_dst = np.array([[650, 550], [600, 550], [500, 550],[500, 400], [550, 500]]) #these are the zoomed out destination points
 
 for i in range(len(frames)):
     frames[i] = cv2.polylines(frames[i], [source_points[i]], True, (0, 255, 0))
