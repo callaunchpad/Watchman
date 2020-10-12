@@ -3,16 +3,17 @@ import os
 from glob import glob
 import numpy as np
 
-frames = [cv2.imread(f'frame{i}.jpg') for i in range(1, 5)]
+frames = [cv2.imread(f'undis{i}.jpg') for i in range(1, 5)]
 
-pts_src1 = np.array([[433, 385], [501, 407], [453, 458],[382, 430]])
-pts_src2 = np.array([[464, 326], [471, 286], [545, 288],[544, 331]])
-pts_src3 = np.array([[359, 392], [274, 388], [298, 338],[376, 341]])
-pts_src4 = np.array([[552, 236], [514, 258], [465, 243],[501, 223]])
+pts_src1 = np.array([[614, 294], [581, 326],[503, 407], [313, 348], [478, 345]])
+pts_src2 = np.array([[250, 279], [324, 281],[472, 286], [440, 437], [383, 325]])
+pts_src3 = np.array([[127, 650], [186, 538], [265, 389],[542, 400], [333, 458]])
+pts_src4 = np.array([[704, 314], [635, 292], [515, 257],[615, 192], [607, 248]])
 
 source_points = [pts_src1, pts_src2, pts_src3, pts_src4]
 
-pts_dst = np.array([[300, 500], [360, 500], [360, 560],[300, 560]])
+#pts_dst = np.array([[750, 550], [650, 550], [450, 550],[450, 250], [550, 450]])
+pts_dst = np.array([[650, 550], [600, 550], [500, 550],[500, 400], [550, 500]])
 
 for i in range(len(frames)):
     frames[i] = cv2.polylines(frames[i], [source_points[i]], True, (0, 255, 0))
