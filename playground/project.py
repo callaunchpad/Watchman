@@ -1,8 +1,21 @@
 # Required Imports
+import os
 import numpy as np
 import open3d as o3d
 import cv2
 import argparse
+import importlib.util
+
+CALIB_DIR = "../data/salsa/calib"
+
+
+def dynamic_load(source_path):
+    spec = importlib.util.spec_from_file_location(
+        f"dynamic_source_{source_path}", source_path
+    )
+    module_object = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module_object)
+    return module_object
 
 
 def project(img, disp_map, intrinsics):
@@ -47,24 +60,28 @@ if __name__ == "__main__":
 
     # args = parser.parse_args()
     # project(args.image, args.disp)
-    intrinsics = [
+    sources = [
         (
-            [1024, 768, 701.195, 699.50371766, 485.301, 432.17],
+            os.path.join(CALIB_DIR, "cam1.py"),
+            [1024, 768],
             "0_{i+1}.jpg",
             "0_{i+1}_disp.npy",
         ),
         (
-            [1024, 768, 695.313, 695.313 * 0.997147, 543.21, 375.81],
+            os.path.join(CALIB_DIR, "cam2.py"),
+            [1024, 768],
             "0_{i+1}.jpg",
             "0_{i+1}_disp.npy",
         ),
         (
-            [1024, 768, 669.93, 669.93 * 0.997553, 509.605, 358.812],
+            os.path.join(CALIB_DIR, "cam3.py"),
+            [1024, 768],
             "0_{i+1}.jpg",
             "0_{i+1}_disp.npy",
         ),
         (
-            [1024, 768, 674.319, 674.319 * 0.995272, 461.743, 398.09],
+            os.path.join(CALIB_DIR, "cam4.py"),
+            [1024, 768],
             "0_{i+1}.jpg",
             "0_{i+1}_disp.npy",
         ),
@@ -72,10 +89,18 @@ if __name__ == "__main__":
 
     pcd = o3d.geometry.PointCloud()
     pairs = []
-    for i, intr_tuple in enumerate(intrinsics):
-        intr, img, depth_map = intr_tuple
+    for i, intr_tuple in enumerate(sources):
+        conf_fname, resolution, img, depth_map = intr_tuple
+        module_object = dynamic_load(conf_fname)
+        intrinsics = module_object.intrinsics
+        intrinsics = resolution + [
+            intrinsics[1][1],
+            intrinsics[0][0],
+            intrinsics[0][-1],
+            intrinsics[1][-1],
+        ]
         pairs.append(
-            project(eval('f"' + img + '"'), eval('f"' + depth_map + '"'), intr)
+            project(eval('f"' + img + '"'), eval('f"' + depth_map + '"'), intrinsics)
         )
 
     # print(np.concatenate((pts_1, pts_2)).shape)
@@ -88,6 +113,7 @@ if __name__ == "__main__":
 
     # transform to view properly
     pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
+    # pcd.transform([])
 
     # Visualize in viewer
     o3d.visualization.draw_geometries([pcd])
