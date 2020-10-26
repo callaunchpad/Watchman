@@ -88,6 +88,8 @@ if __name__ == "__main__":
     ]
 
     pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector([])
+    pcd.colors = o3d.utility.Vector3dVector([])
     pairs = []
     for i, intr_tuple in enumerate(sources):
         conf_fname, resolution, img, depth_map = intr_tuple
@@ -99,17 +101,25 @@ if __name__ == "__main__":
             intrinsics[0][-1],
             intrinsics[1][-1],
         ]
-        pairs.append(
-            project(eval('f"' + img + '"'), eval('f"' + depth_map + '"'), intrinsics)
+        pts, colors = project(
+            eval('f"' + img + '"'), eval('f"' + depth_map + '"'), intrinsics
         )
+        extrinsics = module_object.extrinsics
+        cur_pcd = o3d.geometry.PointCloud()
+        cur_pcd.points = o3d.utility.Vector3dVector(pts)
+        cur_pcd.colors = o3d.utility.Vector3dVector(colors)
+        cur_pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
+        cur_pcd.transform(extrinsics)
+        pcd.points.extend(cur_pcd.points)
+        pcd.colors.extend(cur_pcd.colors)
 
     # print(np.concatenate((pts_1, pts_2)).shape)
-    pcd.points = o3d.utility.Vector3dVector(
-        np.concatenate(tuple(pair[0] for pair in pairs))
-    )
-    pcd.colors = o3d.utility.Vector3dVector(
-        np.concatenate(tuple(pair[1] for pair in pairs))
-    )
+    # pcd.points = o3d.utility.Vector3dVector(
+    #     np.concatenate(tuple(pair[0] for pair in pairs))
+    # )
+    # pcd.colors = o3d.utility.Vector3dVector(
+    #     np.concatenate(tuple(pair[1] for pair in pairs))
+    # )
 
     # transform to view properly
     pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
