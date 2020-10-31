@@ -80,9 +80,13 @@ def detect(given_source):
 				# Write results
 				for *xyxy, conf, cls in reversed(det):
 					label = '%s %.2f' % (names[int(cls)], conf)
-					xyxy = np.array(xyxy)
+					xyxy = list(np.array(xyxy))
+					top_left = [coord - 1 for coord in xyxy[0:2]]
+					bottom_right = [coord - 1 for coord in xyxy[2:]]
+					top_right = [top_left[0], bottom_right[1]]
+					bottom_left = [bottom_right[0], top_left[1]]
 					if label.startswith("person"):
-						bounding_boxes.append(list(xyxy))
+						bounding_boxes.append([top_left, top_right, bottom_left, bottom_right])
  
 	return bounding_boxes
 	print('Done. (%.3fs)' % (time.time() - t0))
