@@ -21,10 +21,13 @@ def main():
     result[:, 512:] = frames[0][:, 512:]
     #result[350:, 250:550] = frames[1][350:, 250:550]
     result[:, :512] = frames[3][:, :512]
-    result[:, :200] = frames[2][:, :200]
-    result[200:600, :512] = frames[2][200:600, :512]
+    #result[:, :200] = frames[2][:, :200]
+    #result[200:600, :512] = frames[2][200:600, :512]
 
     cv2.imwrite("out/stitched.png", result)
+
+def get_boxes(frame):
+    
 
 def get_angles(frame_num):
     frames = []
