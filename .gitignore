@@ -143,3 +143,4 @@ cython_debug/
 #video data
 homography/video
 
+homography/weights

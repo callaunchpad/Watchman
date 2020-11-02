@@ -2,6 +2,7 @@ import cv2
 import os
 from glob import glob
 import numpy as np
+import bounding
 
 pts_src1 = np.array([[614, 294], [581, 326],[503, 407], [313, 348], [478, 345]])
 pts_src2 = np.array([[250, 279], [324, 281],[472, 286], [440, 437], [383, 325]])
@@ -26,8 +27,10 @@ def main():
 
     cv2.imwrite("out/stitched.png", result)
 
-def get_boxes(frame):
-    
+def get_boxes(name, homo):
+    boxes = bounding.get_boxes(name)
+    transformed = np.array([cv2.perspectiveTransform(box.reshape(-1, 1, 2).astype(np.float32), homo) for box in boxes], dtype=int)
+    return transformed
 
 def get_angles(frame_num):
     frames = []
@@ -40,9 +43,12 @@ def get_angles(frame_num):
 
                 with open(f"video/cam{i+1}.calib") as f:
                     undis = undistort(frame, f)
-                    undis = cv2.polylines(undis, [source_points[i]], True, (0, 255, 0))
+                    #undis = cv2.polylines(undis, [source_points[i]], True, (0, 255, 0)) #draws reference points for debugging purposes
+                    cv2.imwrite(f'out/undis{i}.png', undis)
                     h, status = cv2.findHomography(source_points[i], pts_dst)
+                    boxes = get_boxes(f'out/undis{i}.png', h)
                     im_out = cv2.warpPerspective(undis, h, (undis.shape[1], undis.shape[0]))
+                    im_out = cv2.polylines(im_out, boxes, True, (0, 255, 0))
                     frames.append(im_out)
                 break
             j += 1
