@@ -47,30 +47,44 @@ def project(img, disp_map, intrinsics, coords):
 
     #         pts.append(np.array([pt_x, pt_y, pt_z]))
     #         colors.append(color_im[y][x] / 255)
+    bounding_boxes = []
+    for i in range(len(coords)):
+        bounding_box_coords = o3d.utility.Vector3dVector([])
+        for j in range(len(coords[i])):
+            x1, y1 = coords[i][j]
+            z1 = depth_im[0][int(y1.item()) - 1][int(x1.item()) - 1]
+            # x, y, z calculation in 3D space based on intrinsics and depth
+            pt_x1 = (x1 - ints.intrinsic_matrix[0, 2]) * z1 / ints.intrinsic_matrix[0, 0]
+            pt_y1 = (y1 - ints.intrinsic_matrix[1, 2]) * z1 / ints.intrinsic_matrix[1, 1]
+            pt_z1 = z1
+            bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 0.25]])
+        bounding_boxes.append(o3d.geometry.AxisAlignedBoundingBox.create_from_points(bounding_box_coords))
+    # bounding_boxes = []
+    # for a, b, c, d in coords:
+    #     print(x1)
+    #     bounding_box_coords = o3d.utility.Vector3dVector([])
+    #     z1 = depth_im[0][int(y1.item()) - 1][int(x1.item()) - 1]
+    #     # x, y, z calculation in 3D space based on intrinsics and depth
+    #     pt_x1 = (x1 - ints.intrinsic_matrix[0, 2]) * z1 / ints.intrinsic_matrix[0, 0]
+    #     pt_y1 = (y1 - ints.intrinsic_matrix[1, 2]) * z1 / ints.intrinsic_matrix[1, 1]
+    #     pt_z1 = z1
 
-    bounding_box_coords = o3d.utility.Vector3dVector([])
-    for x1, y1, x2, y2 in coords:
-        z1 = depth_im[0][int(y1.item()) - 1][int(x1.item()) - 1]
-        # x, y, z calculation in 3D space based on intrinsics and depth
-        pt_x1 = (x1 - ints.intrinsic_matrix[0, 2]) * z1 / ints.intrinsic_matrix[0, 0]
-        pt_y1 = (y1 - ints.intrinsic_matrix[1, 2]) * z1 / ints.intrinsic_matrix[1, 1]
-        pt_z1 = z1
+    #     z2 = depth_im[0][int(y2.item()) - 1][int(x2.item()) - 1]
+    #     # x, y, z calculation in 3D space based on intrinsics and depth
+    #     pt_x2 = (x2 - ints.intrinsic_matrix[0, 2]) * z2 / ints.intrinsic_matrix[0, 0]
+    #     pt_y2 = (y2 - ints.intrinsic_matrix[1, 2]) * z2 / ints.intrinsic_matrix[1, 1]
+    #     pt_z2 = z2
 
-        z2 = depth_im[0][int(y2.item()) - 1][int(x2.item()) - 1]
-        # x, y, z calculation in 3D space based on intrinsics and depth
-        pt_x2 = (x2 - ints.intrinsic_matrix[0, 2]) * z2 / ints.intrinsic_matrix[0, 0]
-        pt_y2 = (y2 - ints.intrinsic_matrix[1, 2]) * z2 / ints.intrinsic_matrix[1, 1]
-        pt_z2 = z2
-
-        bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 50], [pt_x2, pt_y2, pt_z2], [pt_x2, pt_y2, pt_z2 + 50]])
-    bounding_box = o3d.geometry.OrientedBoundingBox.create_from_points(bounding_box_coords)
+    #     bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 50], [pt_x2, pt_y2, pt_z2], [pt_x2, pt_y2, pt_z2 + 50]])
+    #     bounding_boxes.append(o3d.geometry.OrientedBoundingBox.create_from_points(bounding_box_coords))
+    # # bounding_box = o3d.geometry.OrientedBoundingBox.create_from_points(bounding_box_coords)
 
         
 
     
 
 
-    return bounding_box
+    return bounding_boxes
 
 
 if __name__ == "__main__":
@@ -145,7 +159,7 @@ if __name__ == "__main__":
         print("hehe")
         # print(img)
         coords = get_bounding_boxes(img)
-        bounding_box = project(
+        bounding_boxes = project(
             eval('f"' + img + '"'), eval('f"' + depth_map + '"'), intrinsics, coords
         )
         # extrinsics = module_object.extrinsics
@@ -156,7 +170,7 @@ if __name__ == "__main__":
         # cur_pcd.transform(extrinsics)
         # pcd.points.extend(cur_pcd.points)
         # pcd.colors.extend(cur_pcd.colors)
-        bbox = bounding_box
+        bboxes = bounding_boxes
     
 
 
@@ -174,5 +188,5 @@ if __name__ == "__main__":
     # pcd.transform([])
 
     # Visualize in viewer
-    pcds.append(bbox)
+    pcds.extend(bboxes)
     o3d.visualization.draw_geometries(pcds)
