@@ -3,7 +3,7 @@ import os
 from glob import glob
 import numpy as np
 
-frames = [cv2.imread(f'undis{i}.jpg') for i in range(1, 5)]
+frames = [cv2.imread(f'bounded{i}.png') for i in range(1, 5)]
 
 pts_src1 = np.array([[614, 294], [581, 326],[503, 407], [313, 348], [478, 345]])
 pts_src2 = np.array([[250, 279], [324, 281],[472, 286], [440, 437], [383, 325]])
@@ -22,5 +22,5 @@ for i in range(len(frames)):
     h, status = cv2.findHomography(source_points[i], pts_dst)
     im_out = cv2.warpPerspective(frames[i], h, (frames[i].shape[1], frames[i].shape[0]))
 
-    cv2.imwrite(f"annotated{i}.png", frames[i])
+    # cv2.imwrite(f"annotated{i}.png", frames[i])
     cv2.imwrite(f'result{i}.png', im_out)
