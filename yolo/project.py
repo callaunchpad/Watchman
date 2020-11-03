@@ -30,8 +30,9 @@ def project(img, disp_map, intrinsics, coords):
     # color_im = cv2.cvtColor(color_im, cv2.COLOR_BGR2RGB)
 
     # Read disparity map
-    disparity = np.load(disp_map)[0]
-    depth_im = 1 / disparity  # unscaled disparity to depth conversion
+    disparity = np.load(disp_map)
+    depth_im = disparity  # unscaled disparity to depth conversion
+    print("yo",depth_im.shape)
     # print(depth_im.max(), depth_im.min(), depth_im.shape, color_im.shape)
 
     # pts = []
@@ -50,15 +51,59 @@ def project(img, disp_map, intrinsics, coords):
     bounding_boxes = []
     for i in range(len(coords)):
         bounding_box_coords = o3d.utility.Vector3dVector([])
+        points = []
+        top_left = coords[i][0]
+        bottom_right = coords[i][3]
+        center_x = (top_left[0] + bottom_right[0]) // 2
+        center_y = (top_left[1] + bottom_right[1]) // 2
+        height = top_left[1] - bottom_right[1]
+        width = top_left[0] - bottom_right[0]
+        coords[i] = [(center_x - width//8, center_y - height//8), (center_x + width//8, center_y - height//8), (center_x - width//8, center_y + height//8), (center_x + width//8, center_y + height//8)]
+        # new_top_left = (top_left[0] + ((top_left[0] - bottom_right[0]) // 4), top_left[1] + ((top_left[1] - bottom_right[1]) // 4))
+        # new_bottom_right = (bottom_right[0] - ((top_left[0] - bottom_right[0]) // 4), bottom_right[1] - ((top_left[1] - bottom_right[1]) // 4))
+        # coords[i] = []
         for j in range(len(coords[i])):
             x1, y1 = coords[i][j]
-            z1 = depth_im[0][int(y1.item()) - 1][int(x1.item()) - 1]
+            z1 = depth_im[int(y1.item()) - 1][int(x1.item()) - 1]
             # x, y, z calculation in 3D space based on intrinsics and depth
             pt_x1 = (x1 - ints.intrinsic_matrix[0, 2]) * z1 / ints.intrinsic_matrix[0, 0]
             pt_y1 = (y1 - ints.intrinsic_matrix[1, 2]) * z1 / ints.intrinsic_matrix[1, 1]
             pt_z1 = z1
-            bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 0.25]])
-        bounding_boxes.append(o3d.geometry.AxisAlignedBoundingBox.create_from_points(bounding_box_coords))
+            bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 0.0005]])
+            # points.append([p])
+            print([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 0.25]])
+        bounding_boxes.append(o3d.geometry.OrientedBoundingBox.create_from_points(bounding_box_coords))
+        # print(bounding_box_coords)
+        # points = [
+        #     [0, 0, 0],
+        #     [1, 0, 0],
+        #     [0, 1, 0],
+        #     [1, 1, 0],
+        #     [0, 0, 1],
+        #     [1, 0, 1],
+        #     [0, 1, 1],
+        #     [1, 1, 1],
+        # ]
+        # lines = [
+        #     [0, 1],
+        #     [0, 2],
+        #     [1, 3],
+        #     [2, 3],
+        #     [4, 5],
+        #     [4, 6],
+        #     [5, 7],
+        #     [6, 7],
+        #     [0, 4],
+        #     [1, 5],
+        #     [2, 6],
+        #     [3, 7],
+        # ]
+        # colors = [[1, 0, 0] for i in range(len(lines))]
+        # line_set = o3d.geometry.LineSet(
+        #     points=o3d.utility.Vector3dVector(points),
+        #     lines=o3d.utility.Vector2iVector(lines),
+        # )
+        # line_set.colors = o3d.utility.Vector3dVector(colors)
     # bounding_boxes = []
     # for a, b, c, d in coords:
     #     print(x1)
@@ -98,7 +143,7 @@ if __name__ == "__main__":
         (
             os.path.join(CALIB_DIR, "cam1.py"),
             [1024, 768],
-            "0_1.jpg",
+            "0_1.jpeg",
             "0_1_disp.npy",
         ),
         # (
@@ -141,10 +186,11 @@ if __name__ == "__main__":
         print(os.listdir("."))
         color_im = cv2.cvtColor(color_im, cv2.COLOR_BGR2RGB)
         color_im = o3d.geometry.Image(color_im)
-        print(color_im)
+        # print(color_im)
         # Read disparity map
-        disparity = np.load(eval('f"' + depth_map + '"'))[0][0]
-        depth_im = 1 / disparity  # unscaled disparity to depth conversion
+        disparity = np.load(eval('f"' + depth_map + '"'))
+        # print(disparity)
+        depth_im = disparity  # unscaled disparity to depth conversion
         depth_im = o3d.geometry.Image(depth_im)
         print(depth_im)
         rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color_im, depth_im, depth_scale = 1, convert_rgb_to_intensity = False)
@@ -153,7 +199,8 @@ if __name__ == "__main__":
         ints = o3d.camera.PinholeCameraIntrinsic()
         ints.set_intrinsics(*intrinsics)
         print("hello")
-        curr_pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, ints, extrinsic = np.linalg.inv(extrinsics))
+        curr_pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, ints)
+        curr_pcd = curr_pcd.voxel_down_sample(voxel_size=0.001)
         print(curr_pcd)
         pcds.append(curr_pcd)
         print("hehe")
@@ -171,6 +218,7 @@ if __name__ == "__main__":
         # pcd.points.extend(cur_pcd.points)
         # pcd.colors.extend(cur_pcd.colors)
         bboxes = bounding_boxes
+        
     
 
 
@@ -188,5 +236,7 @@ if __name__ == "__main__":
     # pcd.transform([])
 
     # Visualize in viewer
+    
+    # pcds += [line_set]
     pcds.extend(bboxes)
     o3d.visualization.draw_geometries(pcds)
