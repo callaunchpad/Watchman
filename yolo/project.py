@@ -88,7 +88,7 @@ if __name__ == "__main__":
         (
             os.path.join(CALIB_DIR, "cam1.py"),
             [1024, 768],
-            "0_1.jpeg",
+            "0_1.jpg",
             "0_1_disp.npy",
         ),
         # (
