@@ -32,7 +32,6 @@ def project(img, disp_map, intrinsics, coords):
     # Read disparity map
     disparity = np.load(disp_map)
     depth_im = disparity  # unscaled disparity to depth conversion
-    print("yo",depth_im.shape)
     # print(depth_im.max(), depth_im.min(), depth_im.shape, color_im.shape)
 
     # pts = []
@@ -58,73 +57,19 @@ def project(img, disp_map, intrinsics, coords):
         center_y = (top_left[1] + bottom_right[1]) // 2
         height = top_left[1] - bottom_right[1]
         width = top_left[0] - bottom_right[0]
-        coords[i] = [(center_x - width//8, center_y - height//8), (center_x + width//8, center_y - height//8), (center_x - width//8, center_y + height//8), (center_x + width//8, center_y + height//8)]
+        # coords[i] = [(center_x - width//8, center_y - height//8), (center_x + width//8, center_y - height//8), (center_x - width//8, center_y + height//8), (center_x + width//8, center_y + height//8)]
         # new_top_left = (top_left[0] + ((top_left[0] - bottom_right[0]) // 4), top_left[1] + ((top_left[1] - bottom_right[1]) // 4))
         # new_bottom_right = (bottom_right[0] - ((top_left[0] - bottom_right[0]) // 4), bottom_right[1] - ((top_left[1] - bottom_right[1]) // 4))
         # coords[i] = []
         for j in range(len(coords[i])):
             x1, y1 = coords[i][j]
-            z1 = depth_im[int(y1.item()) - 1][int(x1.item()) - 1]
-            # x, y, z calculation in 3D space based on intrinsics and depth
+            z1 = depth_im[int(center_y)][int(center_x)]
             pt_x1 = (x1 - ints.intrinsic_matrix[0, 2]) * z1 / ints.intrinsic_matrix[0, 0]
             pt_y1 = (y1 - ints.intrinsic_matrix[1, 2]) * z1 / ints.intrinsic_matrix[1, 1]
             pt_z1 = z1
-            bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 0.0005]])
-            # points.append([p])
+            bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 0.00005]])
             print([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 0.25]])
         bounding_boxes.append(o3d.geometry.OrientedBoundingBox.create_from_points(bounding_box_coords))
-        # print(bounding_box_coords)
-        # points = [
-        #     [0, 0, 0],
-        #     [1, 0, 0],
-        #     [0, 1, 0],
-        #     [1, 1, 0],
-        #     [0, 0, 1],
-        #     [1, 0, 1],
-        #     [0, 1, 1],
-        #     [1, 1, 1],
-        # ]
-        # lines = [
-        #     [0, 1],
-        #     [0, 2],
-        #     [1, 3],
-        #     [2, 3],
-        #     [4, 5],
-        #     [4, 6],
-        #     [5, 7],
-        #     [6, 7],
-        #     [0, 4],
-        #     [1, 5],
-        #     [2, 6],
-        #     [3, 7],
-        # ]
-        # colors = [[1, 0, 0] for i in range(len(lines))]
-        # line_set = o3d.geometry.LineSet(
-        #     points=o3d.utility.Vector3dVector(points),
-        #     lines=o3d.utility.Vector2iVector(lines),
-        # )
-        # line_set.colors = o3d.utility.Vector3dVector(colors)
-    # bounding_boxes = []
-    # for a, b, c, d in coords:
-    #     print(x1)
-    #     bounding_box_coords = o3d.utility.Vector3dVector([])
-    #     z1 = depth_im[0][int(y1.item()) - 1][int(x1.item()) - 1]
-    #     # x, y, z calculation in 3D space based on intrinsics and depth
-    #     pt_x1 = (x1 - ints.intrinsic_matrix[0, 2]) * z1 / ints.intrinsic_matrix[0, 0]
-    #     pt_y1 = (y1 - ints.intrinsic_matrix[1, 2]) * z1 / ints.intrinsic_matrix[1, 1]
-    #     pt_z1 = z1
-
-    #     z2 = depth_im[0][int(y2.item()) - 1][int(x2.item()) - 1]
-    #     # x, y, z calculation in 3D space based on intrinsics and depth
-    #     pt_x2 = (x2 - ints.intrinsic_matrix[0, 2]) * z2 / ints.intrinsic_matrix[0, 0]
-    #     pt_y2 = (y2 - ints.intrinsic_matrix[1, 2]) * z2 / ints.intrinsic_matrix[1, 1]
-    #     pt_z2 = z2
-
-    #     bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 50], [pt_x2, pt_y2, pt_z2], [pt_x2, pt_y2, pt_z2 + 50]])
-    #     bounding_boxes.append(o3d.geometry.OrientedBoundingBox.create_from_points(bounding_box_coords))
-    # # bounding_box = o3d.geometry.OrientedBoundingBox.create_from_points(bounding_box_coords)
-
-        
 
     
 
