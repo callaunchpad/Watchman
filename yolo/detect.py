@@ -66,13 +66,13 @@ def detect(given_source):
 			else:
 				p, s, im0 = path, '', im0s
 
-			s += '%gx%g ' % img.shape[2:]  # print string
+			s += '%gx%g ' % img.shape[2:]  # # print string
 			gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]	#  normalization gain whwh
 			if det is not None and len(det):
 				# Rescale boxes from imgsz to im0 size
 				det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
 
-				# Print results
+				# # print results
 				for c in det[:, -1].unique():
 					n = (det[:, -1] == c).sum()  # detections per class
 					s += '%g %ss, ' % (n, names[int(c)])  # add to string
@@ -89,7 +89,6 @@ def detect(given_source):
 						bounding_boxes.append([top_left, top_right, bottom_left, bottom_right])
  
 	return bounding_boxes
-	print('Done. (%.3fs)' % (time.time() - t0))
 
 def get_bounding_boxes(given_source):
 	with torch.no_grad():

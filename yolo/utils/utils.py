@@ -542,7 +542,7 @@ def non_max_suppression(prediction, conf_thres=0.1, iou_thres=0.6, multi_label=T
                 x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
                 # i = i[iou.sum(1) > 1]  # require redundancy
             except:  # possible CUDA error https://github.com/ultralytics/yolov3/issues/1139
-                print(x, i, x.shape, i.shape)
+                # print(x, i, x.shape, i.shape)
                 pass
 
         output[xi] = x[i]
@@ -558,20 +558,20 @@ def get_yolo_layers(model):
 
 
 def print_model_biases(model):
-    # prints the bias neurons preceding each yolo layer
-    print('\nModel Bias Summary: %8s%18s%18s%18s' % ('layer', 'regression', 'objectness', 'classification'))
+    # # prints the bias neurons preceding each yolo layer
+    # print('\nModel Bias Summary: %8s%18s%18s%18s' % ('layer', 'regression', 'objectness', 'classification'))
     try:
         multi_gpu = type(model) in (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel)
-        for l in model.yolo_layers:  # print pretrained biases
+        for l in model.yolo_layers:  # # print pretrained biases
             if multi_gpu:
                 na = model.module.module_list[l].na  # number of anchors
                 b = model.module.module_list[l - 1][0].bias.view(na, -1)  # bias 3x85
             else:
                 na = model.module_list[l].na
                 b = model.module_list[l - 1][0].bias.view(na, -1)  # bias 3x85
-            print(' ' * 20 + '%8g %18s%18s%18s' % (l, '%5.2f+/-%-5.2f' % (b[:, :4].mean(), b[:, :4].std()),
-                                                   '%5.2f+/-%-5.2f' % (b[:, 4].mean(), b[:, 4].std()),
-                                                   '%5.2f+/-%-5.2f' % (b[:, 5:].mean(), b[:, 5:].std())))
+            # print(' ' * 20 + '%8g %18s%18s%18s' % (l, '%5.2f+/-%-5.2f' % (b[:, :4].mean(), b[:, :4].std()),
+                                                #    '%5.2f+/-%-5.2f' % (b[:, 4].mean(), b[:, 4].std()),
+                                                #    '%5.2f+/-%-5.2f' % (b[:, 5:].mean(), b[:, 5:].std())))
     except:
         pass
 
@@ -580,7 +580,7 @@ def strip_optimizer(f='weights/best.pt'):  # from utils.utils import *; strip_op
     # Strip optimizer from *.pt files for lighter files (reduced by 2/3 size)
     x = torch.load(f, map_location=torch.device('cpu'))
     x['optimizer'] = None
-    print('Optimizer stripped from %s' % f)
+    # print('Optimizer stripped from %s' % f)
     torch.save(x, f)
 
 
@@ -593,7 +593,7 @@ def create_backbone(f='weights/best.pt'):  # from utils.utils import *; create_b
     for p in x['model'].parameters():
         p.requires_grad = True
     s = 'weights/backbone.pt'
-    print('%s saved as %s' % (f, s))
+    # print('%s saved as %s' % (f, s))
     torch.save(x, s)
 
 
@@ -605,7 +605,7 @@ def coco_class_count(path='../coco/labels/train2014/'):
     for i, file in enumerate(files):
         labels = np.loadtxt(file, dtype=np.float32).reshape(-1, 5)
         x += np.bincount(labels[:, 0].astype('int32'), minlength=nc)
-        print(i, len(files))
+        # print(i, len(files))
 
 
 def coco_only_people(path='../coco/labels/train2017/'):  # from utils.utils import *; coco_only_people()
@@ -675,11 +675,11 @@ def kmean_anchors(path='./data/coco64.txt', n=9, img_size=(640, 640), thr=0.20, 
         iou = wh_iou(wh, torch.Tensor(k))
         max_iou = iou.max(1)[0]
         bpr, aat = (max_iou > thr).float().mean(), (iou > thr).float().mean() * n  # best possible recall, anch > thr
-        print('%.2f iou_thr: %.3f best possible recall, %.2f anchors > thr' % (thr, bpr, aat))
-        print('n=%g, img_size=%s, IoU_all=%.3f/%.3f-mean/best, IoU>thr=%.3f-mean: ' %
-              (n, img_size, iou.mean(), max_iou.mean(), iou[iou > thr].mean()), end='')
-        for i, x in enumerate(k):
-            print('%i,%i' % (round(x[0]), round(x[1])), end=',  ' if i < len(k) - 1 else '\n')  # use in *.cfg
+        # print('%.2f iou_thr: %.3f best possible recall, %.2f anchors > thr' % (thr, bpr, aat))
+        # print('n=%g, img_size=%s, IoU_all=%.3f/%.3f-mean/best, IoU>thr=%.3f-mean: ' %
+            #   (n, img_size, iou.mean(), max_iou.mean(), iou[iou > thr].mean()), end='')
+        # for i, x in enumerate(k):
+            # print('%i,%i' % (round(x[0]), round(x[1])), end=',  ' if i < len(k) - 1 else '\n')  # use in *.cfg
         return k
 
     def fitness(k):  # mutation fitness
@@ -699,7 +699,7 @@ def kmean_anchors(path='./data/coco64.txt', n=9, img_size=(640, 640), thr=0.20, 
 
     # Kmeans calculation
     from scipy.cluster.vq import kmeans
-    print('Running kmeans for %g anchors on %g points...' % (n, len(wh)))
+    # print('Running kmeans for %g anchors on %g points...' % (n, len(wh)))
     s = wh.std(0)  # sigmas for whitening
     k, dist = kmeans(wh / s, n, iter=30)  # points, mean distance
     k *= s
@@ -737,11 +737,11 @@ def kmean_anchors(path='./data/coco64.txt', n=9, img_size=(640, 640), thr=0.20, 
 
 
 def print_mutation(hyp, results, bucket=''):
-    # Print mutation results to evolve.txt (for use with train.py --evolve)
+    # # print mutation results to evolve.txt (for use with train.py --evolve)
     a = '%10s' * len(hyp) % tuple(hyp.keys())  # hyperparam keys
     b = '%10.3g' * len(hyp) % tuple(hyp.values())  # hyperparam values
     c = '%10.4g' * len(results) % results  # results (P, R, mAP, F1, test_loss)
-    print('\n%s\n%s\nEvolved fitness: %s\n' % (a, b, c))
+    # print('\n%s\n%s\nEvolved fitness: %s\n' % (a, b, c))
 
     if bucket:
         os.system('gsutil cp gs://%s/evolve.txt .' % bucket)  # download evolve.txt
@@ -1022,7 +1022,7 @@ def plot_evolution_results(hyp):  # from utils.utils import *; plot_evolution_re
         plt.plot(mu, f.max(), 'o', markersize=10)
         plt.plot(y, f, '.')
         plt.title('%s = %.3g' % (k, mu), fontdict={'size': 9})  # limit to 40 characters
-        print('%15s: %.3g' % (k, mu))
+        # print('%15s: %.3g' % (k, mu))
     plt.savefig('evolve.png', dpi=200)
 
 

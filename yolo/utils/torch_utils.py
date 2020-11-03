@@ -36,12 +36,12 @@ def select_device(device='', apex=False, batch_size=None):
         for i in range(0, ng):
             if i == 1:
                 s = ' ' * len(s)
-            print("%sdevice%g _CudaDeviceProperties(name='%s', total_memory=%dMB)" %
-                  (s, i, x[i].name, x[i].total_memory / c))
-    else:
-        print('Using CPU')
+            # print("%sdevice%g _CudaDeviceProperties(name='%s', total_memory=%dMB)" %
+                #   (s, i, x[i].name, x[i].total_memory / c))
+    # else:
+        # print('Using CPU')
 
-    print('')  # skip a line
+    # print('')  # skip a line
     return torch.device('cuda:0' if cuda else 'cpu')
 
 
@@ -99,11 +99,11 @@ def model_info(model, verbose=False):
     n_p = sum(x.numel() for x in model.parameters())  # number parameters
     n_g = sum(x.numel() for x in model.parameters() if x.requires_grad)  # number gradients
     if verbose:
-        print('%5s %40s %9s %12s %20s %10s %10s' % ('layer', 'name', 'gradient', 'parameters', 'shape', 'mu', 'sigma'))
+        # print('%5s %40s %9s %12s %20s %10s %10s' % ('layer', 'name', 'gradient', 'parameters', 'shape', 'mu', 'sigma'))
         for i, (name, p) in enumerate(model.named_parameters()):
             name = name.replace('module_list.', '')
-            print('%5g %40s %9s %12g %20s %10.3g %10.3g' %
-                  (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()))
+            # print('%5g %40s %9s %12g %20s %10.3g %10.3g' %
+                #   (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()))
 
     try:  # FLOPS
         from thop import profile
@@ -112,7 +112,7 @@ def model_info(model, verbose=False):
     except:
         fs = ''
 
-    print('Model Summary: %g layers, %g parameters, %g gradients%s' % (len(list(model.parameters())), n_p, n_g, fs))
+    # print('Model Summary: %g layers, %g parameters, %g gradients%s' % (len(list(model.parameters())), n_p, n_g, fs))
 
 
 def load_classifier(name='resnet101', n=2):
@@ -121,8 +121,8 @@ def load_classifier(name='resnet101', n=2):
     model = pretrainedmodels.__dict__[name](num_classes=1000, pretrained='imagenet')
 
     # Display model properties
-    for x in ['model.input_size', 'model.input_space', 'model.input_range', 'model.mean', 'model.std']:
-        print(x + ' =', eval(x))
+    # for x in ['model.input_size', 'model.input_space', 'model.input_range', 'model.mean', 'model.std']:
+        # print(x + ' =', eval(x))
 
     # Reshape output to n classes
     filters = model.last_linear.weight.shape[1]

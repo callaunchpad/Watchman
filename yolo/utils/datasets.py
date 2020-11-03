@@ -90,14 +90,14 @@ class LoadImages:  # for inference
                     ret_val, img0 = self.cap.read()
 
             self.frame += 1
-            print('video %g/%g (%g/%g) %s: ' % (self.count + 1, self.nF, self.frame, self.nframes, path), end='')
+            # print('video %g/%g (%g/%g) %s: ' % (self.count + 1, self.nF, self.frame, self.nframes, path), end='')
 
         else:
             # Read image
             self.count += 1
             img0 = cv2.imread(path)  # BGR
             assert img0 is not None, 'Image Not Found ' + path
-            print('image %g/%g %s: ' % (self.count, self.nF, path), end='')
+            # print('image %g/%g %s: ' % (self.count, self.nF, path), end='')
 
         # Padded resize
         img = letterbox(img0, new_shape=self.img_size)[0]
@@ -165,10 +165,10 @@ class LoadWebcam:  # for inference
                     if ret_val:
                         break
 
-        # Print
+        # # print
         assert ret_val, 'Camera Error %s' % self.pipe
         img_path = 'webcam.jpg'
-        print('webcam %g: ' % self.count, end='')
+        # print('webcam %g: ' % self.count, end='')
 
         # Padded resize
         img = letterbox(img0, new_shape=self.img_size)[0]
@@ -199,7 +199,7 @@ class LoadStreams:  # multiple IP or RTSP cameras
         self.sources = sources
         for i, s in enumerate(sources):
             # Start the thread to read frames from the video stream
-            print('%g/%g: %s... ' % (i + 1, n, s), end='')
+            # print('%g/%g: %s... ' % (i + 1, n, s), end='')
             cap = cv2.VideoCapture(0 if s == '0' else s)
             assert cap.isOpened(), 'Failed to open %s' % s
             w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -207,9 +207,9 @@ class LoadStreams:  # multiple IP or RTSP cameras
             fps = cap.get(cv2.CAP_PROP_FPS) % 100
             _, self.imgs[i] = cap.read()  # guarantee first frame
             thread = Thread(target=self.update, args=([i, cap]), daemon=True)
-            print(' success (%gx%g at %.2f FPS).' % (w, h, fps))
+            # print(' success (%gx%g at %.2f FPS).' % (w, h, fps))
             thread.start()
-        print('')  # newline
+        # print('')  # newline
 
         # check for common shapes
         s = np.stack([letterbox(x, new_shape=self.img_size)[0].shape for x in self.imgs], 0)  # inference shapes
@@ -334,7 +334,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         nm, nf, ne, ns, nd = 0, 0, 0, 0, 0  # number missing, found, empty, datasubset, duplicate
         np_labels_path = str(Path(self.label_files[0]).parent) + '.npy'  # saved labels in *.npy file
         if os.path.isfile(np_labels_path):
-            s = np_labels_path  # print string
+            s = np_labels_path  # # print string
             x = np.load(np_labels_path, allow_pickle=True)
             if len(x) == n:
                 self.labels = x
@@ -352,7 +352,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                     with open(file, 'r') as f:
                         l = np.array([x.split() for x in f.read().splitlines()], dtype=np.float32)
                 except:
-                    nm += 1  # print('missing labels for image %s' % self.img_files[i])  # file missing
+                    nm += 1  # # print('missing labels for image %s' % self.img_files[i])  # file missing
                     continue
 
             if l.shape[0]:
@@ -360,7 +360,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                 assert (l >= 0).all(), 'negative labels: %s' % file
                 assert (l[:, 1:] <= 1).all(), 'non-normalized or out of bounds coordinate labels: %s' % file
                 if np.unique(l, axis=0).shape[0] < l.shape[0]:  # duplicate rows
-                    nd += 1  # print('WARNING: duplicate rows in %s' % self.label_files[i])  # duplicate rows
+                    nd += 1  # # print('WARNING: duplicate rows in %s' % self.label_files[i])  # duplicate rows
                 if single_cls:
                     l[:, 0] = 0  # force dataset into single-class mode
                 self.labels[i] = l
@@ -397,14 +397,14 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                         b[[1, 3]] = np.clip(b[[1, 3]], 0, h)
                         assert cv2.imwrite(f, img[b[1]:b[3], b[0]:b[2]]), 'Failure extracting classifier boxes'
             else:
-                ne += 1  # print('empty labels for image %s' % self.img_files[i])  # file empty
+                ne += 1  # # print('empty labels for image %s' % self.img_files[i])  # file empty
                 # os.system("rm '%s' '%s'" % (self.img_files[i], self.label_files[i]))  # remove
 
             pbar.desc = 'Caching labels %s (%g found, %g missing, %g empty, %g duplicate, for %g images)' % (
                 s, nf, nm, ne, nd, n)
         assert nf > 0 or n == 20288, 'No labels found in %s. See %s' % (os.path.dirname(file) + os.sep, help_url)
         if not labels_loaded and n > 1000:
-            print('Saving labels to %s for faster future loading' % np_labels_path)
+            # print('Saving labels to %s for faster future loading' % np_labels_path)
             np.save(np_labels_path, self.labels)  # save for next time
 
         # Cache images into memory for faster training (WARNING: large datasets may exceed system RAM)
@@ -432,7 +432,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
 
     # def __iter__(self):
     #     self.count = -1
-    #     print('ran dataset iter')
+    #     # print('ran dataset iter')
     #     #self.shuffled_vector = np.random.permutation(self.nF) if self.augment else np.arange(self.nF)
     #     return self
 
@@ -835,7 +835,7 @@ def imagelist2folder(path='data/coco_64img.txt'):  # from utils.datasets import 
     with open(path, 'r') as f:
         for line in f.read().splitlines():
             os.system('cp "%s" %s' % (line, path[:-4]))
-            print(line)
+            # print(line)
 
 
 def create_folder(path='./new_folder'):
