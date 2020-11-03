@@ -48,6 +48,10 @@ def check_file(file):
     if os.path.isfile(file):
         return file
     else:
+        new_file = os.path.join(os.getcwd(), "../data/", file)
+        print(new_file)
+        if os.path.isfile(new_file):
+            return new_file
         files = glob.glob('./**/' + file, recursive=True)  # find file
         assert len(files), 'File Not Found: %s' % file  # assert file was found
         return files[0]  # return first file if multiple found

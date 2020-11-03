@@ -1,14 +1,14 @@
 import argparse
 
-from models import *  # set ONNX_EXPORT in models.py
-from utils.datasets import *
-from utils.utils import *
+from yolo.models import *  # set ONNX_EXPORT in models.py
+from yolo.utils.datasets import *
+from yolo.utils.utils import *
 
 
 def detect(given_source):
 	bounding_boxes = []
 	imgsz = 512  # (320, 192) or (416, 256) or (608, 352) for (height, width)
-	out, source, weights, half, view_img, save_txt = "output", given_source, "weights/yolov3-spp-ultralytics.pt", False, False, False
+	out, source, weights, half, view_img, save_txt = "output", given_source, "../data/weights/yolov3-spp-ultralytics.pt", False, False, False
 	webcam = False
 
 	# Initialize
@@ -36,7 +36,7 @@ def detect(given_source):
 		dataset = LoadImages(source, img_size=imgsz)
 
 	# Get names and colors
-	names = load_classes(check_file("data/coco.names"))
+	names = load_classes(check_file("cfg/coco.names"))
 	colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(len(names))]
 
 	# Run inference

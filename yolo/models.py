@@ -1,6 +1,6 @@
-from utils.google_utils import *
-from utils.layers import *
-from utils.parse_config import *
+from yolo.utils.google_utils import *
+from yolo.utils.layers import *
+from yolo.utils.parse_config import *
 
 ONNX_EXPORT = False
 
