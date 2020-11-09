@@ -3,7 +3,7 @@ import os
 from glob import glob
 import numpy as np
 
-frames = [cv2.imread(f'bounded{i}.png') for i in range(1, 5)]
+frames = [cv2.imread(f'frame{i}.jpg') for i in range(1, 5)]
 
 pts_src1 = np.array([[614, 294], [581, 326],[503, 407], [313, 348], [478, 345]])
 pts_src2 = np.array([[250, 279], [324, 281],[472, 286], [440, 437], [383, 325]])

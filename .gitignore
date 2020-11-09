@@ -144,3 +144,4 @@ cython_debug/
 homography/video
 
 homography/weights
+homography/gif

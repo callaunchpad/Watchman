@@ -13,7 +13,26 @@ source_points = [pts_src1, pts_src2, pts_src3, pts_src4]
 pts_dst = np.array([[650, 550], [600, 550], [500, 550],[500, 400], [550, 500]]) #these are the zoomed out destination points
 
 def main():
-    frames = get_angles(200)
+    caps = [cv2.VideoCapture(f"video/salsa_ps_cam{i}.avi") for i in range(1, 5)]
+    homos = [cv2.findHomography(source_points[i], pts_dst)[0] for i in range(4)]
+    total_frames = int(caps[0].get(7))
+    interval = 30
+    for i in range(total_frames):
+        angles = [cap.read()[1] for cap in caps]
+        if i % interval == 0:
+            undis = []
+            for j in range(4):
+                with open(f"video/cam{j+1}.calib") as f:
+                    undis.append(undistort(angles[j], f))
+            for j, undis_img in enumerate(undis):
+                cv2.imwrite(f'out/undis{j}.png', undis_img)
+            boxes = [get_boxes(f'out/undis{j}.png', homos[j]) for j in range(4)]
+            outs = [cv2.warpPerspective(undis[j], homos[j], (undis[j].shape[1], undis[j].shape[0])) for j in range(4)]
+            outs = [cv2.polylines(outs[j], boxes[j], True, (0, 255, 0)) for j in range(4)]
+            cv2.imwrite(f"gif/stitched{i}.png", create_frame(outs))
+            print(f'FINISHED FRAME {i}/{total_frames}')
+
+def create_frame(frames):
     for i, frame in enumerate(frames):
         cv2.imwrite(f"out/frame{i}.png", frame)
     
@@ -25,35 +44,12 @@ def main():
     #result[:, :200] = frames[2][:, :200]
     #result[200:600, :512] = frames[2][200:600, :512]
 
-    cv2.imwrite("out/stitched.png", result)
+    return result
 
 def get_boxes(name, homo):
     boxes = bounding.get_boxes(name)
     transformed = np.array([cv2.perspectiveTransform(box.reshape(-1, 1, 2).astype(np.float32), homo) for box in boxes], dtype=int)
     return transformed
-
-def get_angles(frame_num):
-    frames = []
-    for i in range(4):
-        cap = cv2.VideoCapture(f"video/salsa_ps_cam{i+1}.avi")
-        j = 0
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if j == frame_num:
-
-                with open(f"video/cam{i+1}.calib") as f:
-                    undis = undistort(frame, f)
-                    #undis = cv2.polylines(undis, [source_points[i]], True, (0, 255, 0)) #draws reference points for debugging purposes
-                    cv2.imwrite(f'out/undis{i}.png', undis)
-                    h, status = cv2.findHomography(source_points[i], pts_dst)
-                    boxes = get_boxes(f'out/undis{i}.png', h)
-                    im_out = cv2.warpPerspective(undis, h, (undis.shape[1], undis.shape[0]))
-                    im_out = cv2.polylines(im_out, boxes, True, (0, 255, 0))
-                    frames.append(im_out)
-                break
-            j += 1
-
-    return frames
 
 def undistort(img, fin):
     current_line = ""
