@@ -1,0 +1,20 @@
+certifi==2020.11.8
+dataclasses==0.7
+future==0.18.2
+mit-semseg @ git+https://github.com/CSAILVision/semantic-segmentation-pytorch.git@8f27c9b97d2ca7c6e05333d5766d144bf7d8c31b
+mkl-fft==1.2.0
+mkl-random==1.1.1
+mkl-service==2.3.0
+numpy @ file:///tmp/build/80754af9/numpy_and_numpy_base_1603487797006/work
+olefile==0.46
+opencv-python==4.4.0.46
+Pillow @ file:///tmp/build/80754af9/pillow_1603822238230/work
+PyYAML==5.3.1
+scipy @ file:///tmp/build/80754af9/scipy_1597686625380/work
+six==1.15.0
+torch==1.7.0
+torchvision==0.8.1
+tqdm==4.50.2
+typing-extensions @ file:///tmp/build/80754af9/typing_extensions_1598376058250/work
+wget==3.2
+yacs==0.1.6
