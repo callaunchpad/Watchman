@@ -221,7 +221,15 @@ assert os.path.exists(cfg.MODEL.weights_encoder) and \
 		os.path.exists(cfg.MODEL.weights_decoder), "checkpoint does not exitst!"
 segmentation_module, gpu = create_network(cfg, 0)
 
-def detect(img):
-	cfg.list_test = [{'fpath_img': img}]
-	loader_test = create_dataset()
-	return test(segmentation_module, loader_test, gpu)
+def detect(img_or_list):
+	if type(img_or_list) is list:
+		ans = []
+		for img in img_or_list:
+			cfg.list_test = [{'fpath_img': img}]
+			loader_test = create_dataset()
+			ans.append(test(segmentation_module, loader_test, gpu))
+		return ans
+	else:
+		cfg.list_test = [{'fpath_img': img_or_list}]
+		loader_test = create_dataset()
+		return test(segmentation_module, loader_test, gpu)
