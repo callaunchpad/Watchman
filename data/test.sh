@@ -27,7 +27,7 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
     image="$2/${token[0]}.jpg"
     draw=""
 
-    if ((${token[0]} % 20 != 0 )); then
+    if (( 10#${token[0]} % 20 != 0 )); then
         continue
     fi
 

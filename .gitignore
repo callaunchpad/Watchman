@@ -146,4 +146,11 @@ homography/video
 homography/weights
 homography/gif
 
-Data/salsa*
+data/salsa*
+*data/cam*
+data/outputs
+data/images
+data/labels
+data/y.npy
+data/table.pkl
+
