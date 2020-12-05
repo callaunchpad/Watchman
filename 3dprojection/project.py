@@ -8,10 +8,10 @@ import cv2
 import argparse
 import importlib.util
 from yolo.detect import get_bounding_boxes
-
+import time
 CALIB_DIR = "../data/salsa/calib"
 
-
+print(os.listdir("."))
 def dynamic_load(source_path):
     spec = importlib.util.spec_from_file_location(
         f"dynamic_source_{source_path}", source_path
@@ -43,10 +43,10 @@ def get_oriented_boxes(depth_im, intrinsics, coords):
 if __name__ == "__main__":
     sources = [
         (
-            os.path.join(CALIB_DIR, "cam1.py"),
+            os.path.abspath(os.path.join(CALIB_DIR, "cam1.py")),
             [1024, 768],
-            "../data/salsa/test_images/0_1.jpg",
-            "../data/salsa/test_depth/0_1_disp.npy",
+            os.path.abspath("../data/salsa/test_images/0_1.jpg"),
+            os.path.abspath("../data/salsa/test_depth/0_1_disp.npy"),
         ),
         # (
         #     os.path.join(CALIB_DIR, "cam2.py"),
@@ -69,7 +69,9 @@ if __name__ == "__main__":
     ]
 
     pcds = []
-    bboxes = []
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+
     for i, intr_tuple in enumerate(sources):
         conf_fname, resolution, img, depth_map = intr_tuple
         module_object = dynamic_load(conf_fname)
@@ -85,28 +87,58 @@ if __name__ == "__main__":
         ints.set_intrinsics(*intrinsics)
         extrinsics = module_object.extrinsics
 
+        print(eval('f"' + img + '"'))
         color_im = cv2.imread(eval('f"' + img + '"'))
         color_im = cv2.cvtColor(color_im, cv2.COLOR_BGR2RGB)
         color_im = o3d.geometry.Image(color_im)
 
         depth_im = np.load(eval('f"' + depth_map + '"'))
 
-        coords = get_bounding_boxes(img)
-        i = 0
-        print("Start")
-        for j in range(len(coords[i])):
-            print(type(coords[i][j]))
-        bounding_boxes = get_oriented_boxes(depth_im, ints, coords)
-
+        depth_im_temp = depth_im
         depth_im = o3d.geometry.Image(depth_im)
         rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color_im, depth_im, depth_scale = 1, convert_rgb_to_intensity = False)
 
         curr_pcd = o3d.geometry.PointCloud.create_from_rgbd_image(rgbd, ints)
         curr_pcd = curr_pcd.voxel_down_sample(voxel_size=0.001)
-        pcds.append(curr_pcd)
+        # curr_pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
+        vis.add_geometry(curr_pcd)
+        # print(os.getcwd())
+        os.chdir("/Users/Mokshith/Documents/launchpad/Watchman/3dprojection")
+        frame_locations = sorted(os.listdir("./cam1_frames/"), key = lambda x: int(x.replace("frame", "").replace(".jpg", "")))
         
-        bboxes.extend(bounding_boxes)
+        # pcds.append(curr_pcd)
+        coords = get_bounding_boxes(img)
+        bounding_boxes = get_oriented_boxes(depth_im_temp, ints, coords)
+        for box in bounding_boxes:
+            vis.add_geometry(box)
+        curr_loc = 0
+        def move_forward(vis):
+            global bounding_boxes
+            # frame = cv2.imread("cam1_frames/frame{}.jpg".format(curr_loc))
+            coords = get_bounding_boxes("cam1_frames/frame{}.jpg".format(curr_loc))
+            bounding_boxes = get_oriented_boxes(depth_im_temp, ints, coords)
+            for geom in bounding_boxes:
+                vis.update_geometry(geom)
+            # bounding_boxes = get_oriented_boxes(depth_im, ints, coords)
+            # pcds[0].transform(mat)
+            
+        vis.register_animation_callback(move_forward)
+        vis.run()
+        vis.destroy_window()
+        # pcds.extend(bounding_boxes)
+
     
-    pcds.extend(bboxes)
-    print(pcds)
-    o3d.visualization.draw_geometries(pcds)
+    # print(pcds)
+    
+
+    # mat = np.eye(4)
+    # mat[:, 3] = [0.01, 0.01, 0.01, 1]
+    # pcds[0].transform(mat)
+    
+    # o3d.visualization.draw_geometries(pcds)
+
+    
+    # time.sleep(10)
+    
+
+    # o3d.visualization.update_geometry(pcds[0])
