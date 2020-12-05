@@ -9,7 +9,6 @@ import argparse
 import importlib.util
 from yolo.detect import get_bounding_boxes
 
-
 CALIB_DIR = "../data/salsa/calib"
 
 
@@ -36,14 +35,18 @@ def get_oriented_boxes(depth_im, intrinsics, coords):
         # new_top_left = (top_left[0] + ((top_left[0] - bottom_right[0]) // 4), top_left[1] + ((top_left[1] - bottom_right[1]) // 4))
         # new_bottom_right = (bottom_right[0] - ((top_left[0] - bottom_right[0]) // 4), bottom_right[1] - ((top_left[1] - bottom_right[1]) // 4))
         # coords[i] = []
-        for j in range(len(coords[i])):
-            x1, y1 = coords[i][j]
-            z1 = depth_im[int(center_y)][int(center_x)]
-            pt_x1 = (x1 - ints.intrinsic_matrix[0, 2]) * z1 / ints.intrinsic_matrix[0, 0]
-            pt_y1 = (y1 - ints.intrinsic_matrix[1, 2]) * z1 / ints.intrinsic_matrix[1, 1]
-            pt_z1 = z1
-            bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 0.00005]])
-        bounding_boxes.append(o3d.geometry.OrientedBoundingBox.create_from_points(bounding_box_coords))
+        # y'all dont need to use oriented bboxes anymore right, so you can remove that?
+        # ya youreprobably right, ok cool so i think you can just take the pt_x1 y1 and z1 and create a mesh thing around that and see where it puts it for now right
+        # for j in range(len(coords[i])):
+        #     x1, y1 = coords[i][j]
+        #     z1 = depth_im[int(center_y)][int(center_x)]
+        #     pt_x1 = (x1 - ints.intrinsic_matrix[0, 2]) * z1 / ints.intrinsic_matrix[0, 0]
+        #     pt_y1 = (y1 - ints.intrinsic_matrix[1, 2]) * z1 / ints.intrinsic_matrix[1, 1]
+        #     pt_z1 = z1
+        #     bounding_box_coords.append([pt_x1, pt_y1, pt_z1])
+        #     bounding_box_coords.append([pt_x1, pt_y1, pt_z1 + 0.00005])
+        #     # bounding_box_coords.extend([[pt_x1, pt_y1, pt_z1], [pt_x1, pt_y1, pt_z1 + 0.00005]])
+        # bounding_boxes.append(o3d.geometry.OrientedBoundingBox.create_from_points(bounding_box_coords))
 
     
 
@@ -103,7 +106,11 @@ if __name__ == "__main__":
         depth_im = np.load(eval('f"' + depth_map + '"'))
 
         coords = get_bounding_boxes(img)
-        bounding_boxes = get_oriented_boxes(depth_im, ints, coords)
+        i = 0
+        print("Start")
+        for j in range(len(coords[i])):
+            print(type(coords[i][j]))
+        # bounding_boxes = get_oriented_boxes(depth_im, ints, coords)
 
         depth_im = o3d.geometry.Image(depth_im)
         rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(color_im, depth_im, depth_scale = 1, convert_rgb_to_intensity = False)
@@ -112,8 +119,8 @@ if __name__ == "__main__":
         curr_pcd = curr_pcd.voxel_down_sample(voxel_size=0.001)
         pcds.append(curr_pcd)
         
-        bboxes.extend(bounding_boxes)
+        #bboxes.extend(bounding_boxes)
     
-    pcds.extend(bboxes)
+    #pcds.extend(bboxes)
     print(pcds)
     o3d.visualization.draw_geometries(pcds)

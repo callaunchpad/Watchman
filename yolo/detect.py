@@ -77,17 +77,25 @@ def detect(given_source):
 					n = (det[:, -1] == c).sum()  # detections per class
 					s += '%g %ss, ' % (n, names[int(c)])  # add to string
 
-				# Write results
+				# Write results this is mokshith - make sure you guys just do salsa for now like use the point cloud from that and not any of the other datasets when trying all this
 				for *xyxy, conf, cls in reversed(det):
 					label = '%s %.2f' % (names[int(cls)], conf)
-					xyxy = list(np.array(xyxy))
+					print(xyxy)
 					top_left = [coord - 1 for coord in xyxy[0:2]]
+					top_left[0] = top_left[0].cpu().numpy().item()
+					top_left[1] = top_left[1].cpu().numpy().item()
+					# top_left = top_left.cpu().numpy()
 					bottom_right = [coord - 1 for coord in xyxy[2:]]
+					# bottom_right = bottom_right.cpu().numpy()
+					bottom_right[0] = bottom_right[0].cpu().numpy().item()
+					bottom_right[1] = bottom_right[1].cpu().numpy().item()
 					top_right = [top_left[0], bottom_right[1]]
 					bottom_left = [bottom_right[0], top_left[1]]
 					if label.startswith("person"):
+						# print(type(top_left[0][0]))
 						bounding_boxes.append([top_left, top_right, bottom_left, bottom_right])
  
+	print(type(bounding_boxes))
 	return bounding_boxes
 
 def get_bounding_boxes(given_source):

@@ -111,7 +111,7 @@ def generate_depth_maps(img_files):
     # Resizing depth maps to original dimension
     resized_outputs = []
     for i in range(len(outputs)):
-        resized_outputs.append(resize(outputs[i], (768, 1024, 1), preserve_range=True, mode='reflect', anti_aliasing=True))
+        resized_outputs.append(resize(outputs[i], (480, 640, 1), preserve_range=True, mode='reflect', anti_aliasing=True))
     return resized_outputs
     # return outputs
     # output_img_arr = outputs[0]
