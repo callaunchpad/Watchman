@@ -9,6 +9,7 @@ import argparse
 import importlib.util
 from yolo.detect import get_bounding_boxes
 import time
+import json
 CALIB_DIR = "../data/salsa/calib"
 
 def dynamic_load(source_path):
@@ -82,7 +83,7 @@ if __name__ == "__main__":
         curr_pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
         vis.add_geometry(curr_pcd)
 
-        os.chdir("/Users/Mokshith/Documents/launchpad/Watchman/3dprojection")
+        # os.chdir("/Users/Mokshith/Documents/launchpad/Watchman/3dprojection")
         frame_locations = sorted(os.listdir("./cam1_frames/"), key = lambda x: int(x.replace("frame", "").replace(".jpg", "")))
         
         coords = get_bounding_boxes(img)
@@ -93,13 +94,30 @@ if __name__ == "__main__":
         curr_loc = 0
         changer = 1
 
+        camera_params = []
+
         def move_forward(vis):
             global curr_loc
             global curr_pcd
             global bounding_boxes
             global changer
 
+            curr_loc += 1
+            if curr_loc % 100: return
+
             ctr = vis.get_view_control()
+
+            cur_params = ctr.convert_to_pinhole_camera_parameters()
+            camera_params.append(cur_params)
+            print(time.time())
+
+            if curr_loc // 100 > 20:
+                vis.register_animation_callback(None)
+                print("Done sampling")
+                with open("camera_trajectory.out.json", "w") as fp:
+                    json.dump(camera_params, fp)
+            
+            return
 
             if curr_loc % 300 == 0:
                 changer *= -1
