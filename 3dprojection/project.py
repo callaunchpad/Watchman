@@ -9,7 +9,9 @@ import argparse
 import importlib.util
 from yolo.detect import get_bounding_boxes
 import time
+
 CALIB_DIR = "../data/salsa/calib"
+DATASET = 'salsa'
 
 def dynamic_load(source_path):
     spec = importlib.util.spec_from_file_location(
@@ -40,14 +42,25 @@ def get_oriented_boxes(depth_im, intrinsics, coords):
 
 
 if __name__ == "__main__":
-    sources = [
-        (
-            os.path.abspath(os.path.join(CALIB_DIR, "cam1.py")),
-            [1024, 768],
-            os.path.abspath("../data/salsa/test_images/0_1.jpg"),
-            os.path.abspath("../data/salsa/test_depth/0_1_disp.npy"),
-        )
-    ]
+    if DATASET == 'lab':
+        sources = [
+            (
+                os.path.abspath(os.path.join(CALIB_DIR, "cam1_lab.py")),
+                [1024, 768],
+                os.path.abspath("../data/salsa/test_images/lab.jpg"),
+                os.path.abspath("../data/salsa/test_depth/lab_depth.npy"),
+            )
+        ]
+    elif DATASET == 'salsa':
+        sources = [
+            (
+                os.path.abspath(os.path.join(CALIB_DIR, "cam1.py")),
+                [1024, 768],
+                os.path.abspath("../data/salsa/test_images/0_1.jpg"),
+                os.path.abspath("../data/salsa/test_depth/0_1_disp.npy"),
+            )
+        ]
+
 
     vis = o3d.visualization.Visualizer()
     vis.create_window()
@@ -83,10 +96,17 @@ if __name__ == "__main__":
         vis.add_geometry(curr_pcd)
 
         os.chdir("/Users/Mokshith/Documents/launchpad/Watchman/3dprojection")
-        frame_locations = sorted(os.listdir("./cam1_frames/"), key = lambda x: int(x.replace("frame", "").replace(".jpg", "")))
         
-        coords = get_bounding_boxes(img)
-        bounding_boxes = get_oriented_boxes(depth_im_temp, ints, coords) + get_oriented_boxes(depth_im_temp, ints, coords)
+        frame_folder = 'cam1' if DATASET == 'salsa' else 'lab'
+
+        if DATASET == 'salsa':
+            frame_locations = sorted(os.listdir("./cam1_frames/"), key = lambda x: int(x.replace("frame", "").replace(".jpg", "")))
+        elif DATASET == 'lab':
+            frame_locations = sorted(os.listdir("./{}_frames/".format(frame_folder)))
+            frame_locations = frame_locations[0::10]
+        
+        coords = get_bounding_boxes('cam1_frames/frame0.jpg' if DATASET == 'salsa' else 'lab_frames/003200.jpg')
+        bounding_boxes = get_oriented_boxes(depth_im_temp, ints, coords) + get_oriented_boxes(depth_im_temp, ints, coords) + get_oriented_boxes(depth_im_temp, ints, coords)
         for box in bounding_boxes:
             vis.add_geometry(box)
         
@@ -109,12 +129,8 @@ if __name__ == "__main__":
             else:
                 ctr.rotate(changer * 1.0, 0.0)
 
-            
-
-            if curr_loc % 100 == 0:
-                # coords = get_bounding_boxes(os.path.join("cam1_frames/", frame_locations[curr_loc]))
-                coords = np.load(os.path.join("cam1_preds/", frame_locations[curr_loc//100]).replace("jpg", "npy"))
-                # np.save(os.path.join("cam1_preds/", frame_locations[curr_loc]).replace("jpg", "npy"), coords)
+            if curr_loc % (10 if DATASET == 'salsa' else 10) == 0:
+                coords = np.load(os.path.join("{}_preds/".format(frame_folder), frame_locations[curr_loc//(10 if DATASET == 'salsa' else 10)]).replace("jpg", "npy"))
                 bounding_boxes_temp = get_oriented_boxes(depth_im_temp, ints, coords)
 
                 for i in range(len(bounding_boxes_temp)):
