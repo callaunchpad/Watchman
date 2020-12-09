@@ -176,6 +176,8 @@ if __name__ == "__main__":
                 if curr_loc // 100 > 10:
                     vis.register_animation_callback(None)
                     print("Done sampling")
+                    traj = o3d.camera.PinholeCameraTrajectory()
+                    traj.parameters = camera_params
                     o3d.io.write_pinhole_camera_trajectory(
                         "./{}_trajectory.json".format(DATASET), traj
                     )
