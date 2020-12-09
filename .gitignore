@@ -145,3 +145,14 @@ homography/video
 
 # VSCode
 .vscode/
+=======
+homography/weights
+homography/gif
+
+data/salsa*
+*data/cam*
+data/outputs
+data/images
+data/labels
+data/y.npy
+data/table.pkl

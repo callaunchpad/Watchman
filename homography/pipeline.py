@@ -2,6 +2,7 @@ import cv2
 import os
 from glob import glob
 import numpy as np
+import bounding
 
 pts_src1 = np.array([[614, 294], [581, 326],[503, 407], [313, 348], [478, 345]])
 pts_src2 = np.array([[250, 279], [324, 281],[472, 286], [440, 437], [383, 325]])
@@ -12,7 +13,26 @@ source_points = [pts_src1, pts_src2, pts_src3, pts_src4]
 pts_dst = np.array([[650, 550], [600, 550], [500, 550],[500, 400], [550, 500]]) #these are the zoomed out destination points
 
 def main():
-    frames = get_angles(200)
+    caps = [cv2.VideoCapture(f"video/salsa_ps_cam{i}.avi") for i in range(1, 5)]
+    homos = [cv2.findHomography(source_points[i], pts_dst)[0] for i in range(4)]
+    total_frames = int(caps[0].get(7))
+    interval = 30
+    for i in range(total_frames):
+        angles = [cap.read()[1] for cap in caps]
+        if i % interval == 0:
+            undis = []
+            for j in range(4):
+                with open(f"video/cam{j+1}.calib") as f:
+                    undis.append(undistort(angles[j], f))
+            for j, undis_img in enumerate(undis):
+                cv2.imwrite(f'out/undis{j}.png', undis_img)
+            boxes = [get_boxes(f'out/undis{j}.png', homos[j]) for j in range(4)]
+            outs = [cv2.warpPerspective(undis[j], homos[j], (undis[j].shape[1], undis[j].shape[0])) for j in range(4)]
+            outs = [cv2.polylines(outs[j], boxes[j], True, (0, 255, 0)) for j in range(4)]
+            cv2.imwrite(f"gif/stitched{i}.png", create_frame(outs))
+            print(f'FINISHED FRAME {i}/{total_frames}')
+
+def create_frame(frames):
     for i, frame in enumerate(frames):
         cv2.imwrite(f"out/frame{i}.png", frame)
     
