@@ -165,7 +165,7 @@ if __name__ == "__main__":
             if record == "play":
                 ctr.convert_from_pinhole_camera_parameters(
                     cur_trajectory.parameters[
-                        (curr_loc // 5) % len(cur_trajectory.parameters)
+                        (curr_loc // 5) % (len(cur_trajectory.parameters))
                     ]
                 )
             else:
@@ -176,30 +176,6 @@ if __name__ == "__main__":
                 if curr_loc // 100 > 10:
                     vis.register_animation_callback(None)
                     print("Done sampling")
-                    out_params = [
-                        (
-                            {
-                                "class_name": "PinholeCameraParameters",
-                                "extrinsic": params.extrinsic.flatten().tolist(),
-                                "intrinsic": {
-                                    "height": params.intrinsic.height,
-                                    "width": params.intrinsic.width,
-                                    "intrinsic_matrix": params.intrinsic.intrinsic_matrix.flatten().tolist(),
-                                },
-                            }
-                        )
-                        for params in camera_params
-                    ]
-                    out_params = {
-                        "class_name": "PinholeCameraTrajectory",
-                        "parameters": out_params,
-                        "version_major": 1,
-                        "version_minor": 0,
-                    }
-                    traj = o3d.camera.PinholeCameraTrajectory()
-                    traj.parameters = camera_params
-                    with open("camera_trajectory.out.json", "w") as fp:
-                        json.dump(out_params, fp)
                     o3d.io.write_pinhole_camera_trajectory(
                         "./{}_trajectory.json".format(DATASET), traj
                     )
@@ -208,7 +184,10 @@ if __name__ == "__main__":
                 coords = np.load(
                     os.path.join(
                         "{}_preds/".format(frame_folder),
-                        frame_locations[curr_loc // (10 if DATASET == "salsa" else 20)],
+                        frame_locations[
+                            (curr_loc // (10 if DATASET == "salsa" else 20))
+                            % len(frame_locations)
+                        ],
                     ).replace("jpg", "npy")
                 )
                 bounding_boxes_temp = get_oriented_boxes(depth_im_temp, ints, coords)
@@ -221,7 +200,9 @@ if __name__ == "__main__":
 
                 for i in range(len(bounding_boxes_temp), len(bounding_boxes)):
                     bounding_boxes[i].paint_uniform_color(np.array([0, 0, 0]))
-                    bounding_boxes[i].translate(np.array([1, 1, 1]), relative=False)
+                    bounding_boxes[i].translate(
+                        np.array([1e3, 1e3, 1e3]), relative=False
+                    )
 
                 for geom in bounding_boxes:
                     vis.update_geometry(geom)
