@@ -44,7 +44,7 @@ def get_oriented_boxes(depth_im, intrinsics, coords):
             (center_y - ints.intrinsic_matrix[1, 2]) * z1 / ints.intrinsic_matrix[1, 1]
         )
         mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(
-            size=0.05, origin=[pt_x1, -pt_y1, -z1]
+            size=0.025, origin=[pt_x1, -pt_y1, -z1]
         )
         bounding_boxes.append(mesh_frame)
 
@@ -150,6 +150,11 @@ if __name__ == "__main__":
             cur_trajectory,
         )
 
+        def ping_pong(idx):
+            double_index = idx % (2 * len(cur_trajectory.parameters) - 1)
+            midpoint = len(cur_trajectory.parameters) - 1
+            return midpoint - abs(midpoint - double_index)
+
         def move_forward(vis):
             global curr_loc
             global curr_pcd
@@ -164,9 +169,7 @@ if __name__ == "__main__":
 
             if record == "play":
                 ctr.convert_from_pinhole_camera_parameters(
-                    cur_trajectory.parameters[
-                        (curr_loc // 5) % (len(cur_trajectory.parameters))
-                    ]
+                    cur_trajectory.parameters[ping_pong(curr_loc // 5)]
                 )
             else:
                 cur_params = ctr.convert_to_pinhole_camera_parameters()
@@ -195,7 +198,7 @@ if __name__ == "__main__":
                 bounding_boxes_temp = get_oriented_boxes(depth_im_temp, ints, coords)
 
                 for i in range(len(bounding_boxes_temp)):
-                    bounding_boxes[i].paint_uniform_color(np.array([0, 1, 0]))
+                    bounding_boxes[i].paint_uniform_color(np.array([0.15, 0.15, 1]))
                     bounding_boxes[i].translate(
                         bounding_boxes_temp[i].get_center(), relative=False
                     )
