@@ -58,7 +58,7 @@ After projecting into 3D, we obtain the following. The green things are where pe
 ![Room Visualization](imgs/room-view-sample.gif)
 
 ### People Noise
-One might botice the weird abberations caused by the people. This is expected since the camera is simply unable to see anything else behind a person from simply one angle. To alleviate this, we created a depth map + image corrected based on semantic segmentation. What this entails is simply correcting the depth map over many iterations by first starting off with an empty map and then filling it in based on parts of the scene that don't contain any dynamic objects (chairs, people, etc). This essentially is able to "fill in" the scene and replace all occurences of people.
+One might notice the weird abberations caused by the people. This is expected since the camera is simply unable to see anything else behind a person from simply one angle. To alleviate this, we created a depth map + image corrected based on semantic segmentation. What this entails is simply correcting the depth map over many iterations by first starting off with an empty map and then filling it in based on parts of the scene that don't contain any dynamic objects (chairs, people, etc). This essentially is able to "fill in" the scene and replace all occurences of people.
 
 Another way to fix this issue which is orders of magnitude better is by combining multiple camera views but that is being put in for future work.
 
@@ -68,8 +68,35 @@ After we "fill in" gaps, we get what we see below. As you can see, there are sti
 
 ## Approach 2: Homography Transformation
 
-### README explanation coming soon
+The next approach we tried is the homography. While it's true that this approach only reconstructs the limited top-down perspective of the room, it's important to try because of how easy it is to combine information from multiple cameras.
 
+Though one might not notice, there are many places in which the homography is used. See two common use cases below.
+
+Parallel Parking View |  Document Scanner App
+:-------------------------:|:-------------------------:
+![](imgs/car-top.png)  |  ![](imgs/scanner.png)
+
+The main idea is to essentially take a few source points in an image (the more the merrier), and transform them to some "expected" or "destination" point and doing that to every other pixel in the image while you're at it.
+
+![](https://i.stack.imgur.com/FT1K8.png)
+
+![](https://docs.opencv.org/master/homography_transformation_example2.jpg)
+
+This transformation is created by being able to solve for the 3x3 matrix below via those selected source and destination points. After this is done, we can apply that same transformation to any set of points.
+
+Before |  After
+:-------------------------:|:-------------------------:
+![](imgs/homography-bef.png)  |  ![](imgs/homography_aft.png)
+
+If we have enough camera views, we can then stitch them together if we choose different source points all with the same destination points. This means that the source points all refer to the same place in the real-world but from different camera views.
+
+Then applying YOLO gives us the following result.
+
+![](imgs/homography.gif)
+
+# Future Improvements
+
+We hope to further improve this project by trying to cleanly merge PointClouds from multiple cameras in 3D and find a better way to remove dynamic obstacle noise. We also want to create an end-to-end approach that allows us to automatically generate top-down views of any scene without the need for camera intrinsics or a homography.
 
 # Project Credits
 Mokshith Voodarla\
@@ -77,4 +104,4 @@ Sumer Kohli\
 Billy Wang\
 Sean Kim\
 Max Emerling\
-Devang Jhabakh Jai\
+Devang Jhabakh Jai
